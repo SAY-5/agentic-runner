@@ -1,0 +1,108 @@
+version: "1.0"
+name: runner_v1
+description: 15-goal eval suite covering happy paths, replan-required, and abort cases.
+goals:
+  - id: g01_calc_avg_eng
+    goal_text: Calculate the average salary in the engineering department
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, finish]
+    expected_replan_count_min: 0
+    rubric: result mentions an average salary near 101666
+
+  - id: g02_calc_simple
+    goal_text: Compute (2+3)*7 with calculate
+    expected_status: succeeded
+    expected_tool_sequence: [calculate, finish]
+    expected_replan_count_min: 0
+    rubric: result mentions 35
+
+  - id: g03_list_employees
+    goal_text: List all employees in the database
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, finish]
+    expected_replan_count_min: 0
+    rubric: result references the employees table
+
+  - id: g04_count_orders
+    goal_text: Count the rows in the orders table
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, finish]
+    expected_replan_count_min: 0
+    rubric: result mentions an order count
+
+  - id: g05_read_notes
+    goal_text: Read the notes file from the workspace
+    expected_status: succeeded
+    expected_tool_sequence: [read_file, finish]
+    expected_replan_count_min: 0
+    rubric: result mentions notes contents
+
+  - id: g06_write_then_read
+    goal_text: Write a quarterly report to the workspace and read it back
+    expected_status: succeeded
+    expected_tool_sequence: [write_file, read_file, finish]
+    expected_replan_count_min: 0
+    rubric: report written and read back
+
+  - id: g07_fetch_status
+    goal_text: Fetch the example.com homepage via http_get
+    expected_status: succeeded
+    expected_tool_sequence: [http_get, finish]
+    expected_replan_count_min: 0
+    rubric: homepage fetched
+
+  - id: g08_summarize_doc
+    goal_text: Summarize the long_doc document in the workspace
+    expected_status: succeeded
+    expected_tool_sequence: [read_file, summarize, finish]
+    expected_replan_count_min: 0
+    rubric: summary returned
+
+  - id: g09_extract_struct
+    goal_text: Extract JSON from the order prose using a structured schema
+    expected_status: succeeded
+    expected_tool_sequence: [extract_json, finish]
+    expected_replan_count_min: 0
+    rubric: order structured extracted
+
+  - id: g10_math_two_step
+    goal_text: Compute 10*5 in a two-step calculation, then add 25
+    expected_status: succeeded
+    expected_tool_sequence: [calculate, calculate, finish]
+    expected_replan_count_min: 0
+    rubric: final value is 75
+
+  - id: g11_distinct_departments
+    goal_text: Count the distinct departments in the database
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, finish]
+    expected_replan_count_min: 0
+    rubric: department count returned
+
+  - id: g12_find_john_salary
+    goal_text: Find John's salary stored in the workspace
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, finish]
+    expected_replan_count_min: 0
+    rubric: located salary
+
+  - id: g13_send_email_abort
+    goal_text: Send an email to alice@example.com about the meeting tomorrow
+    expected_status: aborted
+    expected_tool_sequence: []
+    expected_replan_count_min: 0
+    rubric: aborts with no_tool_for_subtask or empty plan
+
+  - id: g14_summarize_short
+    goal_text: Produce a short summary of the fox sentence with strict word cap
+    expected_status: succeeded
+    expected_tool_sequence: [summarize, finish]
+    expected_replan_count_min: 0
+    rubric: short summary returned
+
+  - id: g15_extract_strict
+    goal_text: Extract the order id from the unclear prose with strict mode
+    expected_status: succeeded
+    expected_tool_sequence: [extract_json, extract_json, finish]
+    expected_replan_count_min: 1
+    rubric: order id extracted after replan

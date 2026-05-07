@@ -1,0 +1,364 @@
+{
+  "metrics": {
+    "abort_rate": 0.066667,
+    "avg_cost_usd": 0.001973,
+    "avg_steps": 2.133333,
+    "matches_expected_rate": 1.0,
+    "n": 15,
+    "replan_rate": 0.133333,
+    "rubric_pass_rate": 1.0,
+    "success_rate": 0.933333,
+    "tool_sequence_jaccard_avg": 1.0
+  },
+  "provider": "fake",
+  "results": [
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "final_result": "Average engineering salary: 101666.7",
+      "goal_text": "Calculate the average salary in the engineering department",
+      "id": "g01_calc_avg_eng",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "calculate",
+        "finish"
+      ],
+      "final_result": "Result: 35",
+      "goal_text": "Compute (2+3)*7 with calculate",
+      "id": "g02_calc_simple",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "calculate",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "final_result": "Listed employees from the employees table.",
+      "goal_text": "List all employees in the database",
+      "id": "g03_list_employees",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "final_result": "Order count returned.",
+      "goal_text": "Count the rows in the orders table",
+      "id": "g04_count_orders",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "read_file",
+        "finish"
+      ],
+      "final_result": "Notes file contents returned.",
+      "goal_text": "Read the notes file from the workspace",
+      "id": "g05_read_notes",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "read_file",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "write_file",
+        "read_file",
+        "finish"
+      ],
+      "final_result": "Report written and read back.",
+      "goal_text": "Write a quarterly report to the workspace and read it back",
+      "id": "g06_write_then_read",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "write_file",
+        "read_file",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.002,
+      "total_steps": 3
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "http_get",
+        "finish"
+      ],
+      "final_result": "Homepage fetched successfully.",
+      "goal_text": "Fetch the example.com homepage via http_get",
+      "id": "g07_fetch_status",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "http_get",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "read_file",
+        "summarize",
+        "finish"
+      ],
+      "final_result": "Document summary returned.",
+      "goal_text": "Summarize the long_doc document in the workspace",
+      "id": "g08_summarize_doc",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "read_file",
+        "summarize",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.002,
+      "total_steps": 3
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "extract_json",
+        "finish"
+      ],
+      "final_result": "Structured order extracted.",
+      "goal_text": "Extract JSON from the order prose using a structured schema",
+      "id": "g09_extract_struct",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "extract_json",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "calculate",
+        "calculate",
+        "finish"
+      ],
+      "final_result": "Final value: 75",
+      "goal_text": "Compute 10*5 in a two-step calculation, then add 25",
+      "id": "g10_math_two_step",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "calculate",
+        "calculate",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.002,
+      "total_steps": 3
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "final_result": "Distinct department count returned.",
+      "goal_text": "Count the distinct departments in the database",
+      "id": "g11_distinct_departments",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "final_result": "John's salary located in salaries.txt.",
+      "goal_text": "Find John's salary stored in the workspace",
+      "id": "g12_find_john_salary",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "query_db",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": "max_replans_exceeded :: no_tool_for_subtask: requested tool 'send_email' is not registered",
+      "expected_replan_count_min": 0,
+      "expected_status": "aborted",
+      "expected_tool_sequence": [],
+      "final_result": null,
+      "goal_text": "Send an email to alice@example.com about the meeting tomorrow",
+      "id": "g13_send_email_abort",
+      "matches_expected": true,
+      "replan_count": 6,
+      "rubric_pass": true,
+      "status": "aborted",
+      "tool_sequence": [],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0048,
+      "total_steps": 0
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 0,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "summarize",
+        "finish"
+      ],
+      "final_result": "Short summary returned.",
+      "goal_text": "Produce a short summary of the fox sentence with strict word cap",
+      "id": "g14_summarize_short",
+      "matches_expected": true,
+      "replan_count": 0,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "summarize",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0016,
+      "total_steps": 2
+    },
+    {
+      "abort_reason": null,
+      "expected_replan_count_min": 1,
+      "expected_status": "succeeded",
+      "expected_tool_sequence": [
+        "extract_json",
+        "extract_json",
+        "finish"
+      ],
+      "final_result": "Order id extracted.",
+      "goal_text": "Extract the order id from the unclear prose with strict mode",
+      "id": "g15_extract_strict",
+      "matches_expected": true,
+      "replan_count": 1,
+      "rubric_pass": true,
+      "status": "succeeded",
+      "tool_sequence": [
+        "extract_json",
+        "finish"
+      ],
+      "tool_sequence_jaccard": 1.0,
+      "total_cost_usd": 0.0028,
+      "total_steps": 3
+    }
+  ],
+  "suite": "runner_v1",
+  "version": "1.0"
+}
