@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Enum,
     Float,
@@ -104,6 +105,8 @@ class Subtask(Base):
         Enum(SubtaskStatus, name="subtask_status"), default=SubtaskStatus.PENDING, nullable=False
     )
     confidence_threshold: Mapped[float] = mapped_column(Float, default=0.0)
+    dependencies: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    parallel: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     goal: Mapped[Goal] = relationship(back_populates="subtasks")

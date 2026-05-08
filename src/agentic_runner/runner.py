@@ -96,6 +96,165 @@ class Runner:
         finally:
             session.close()
 
+    async def run_parallel(
+        self,
+        goal_text: str,
+        goal_id: str | None = None,
+        max_concurrency: int = 4,
+    ) -> RunResult:
+        """Run the goal with the parallel DAG scheduler.
+
+        Subtasks marked ``parallel`` (or with explicit empty
+        dependencies) execute concurrently up to ``max_concurrency``
+        workers. All other subtasks retain sequential semantics. On any
+        subtask failure, in-flight work drains, and the plan-validate-
+        replan cycle resumes with the latest state across every
+        completed sibling subtask.
+        """
+
+        from agentic_runner.parallel_runner import run_parallel as _exec_parallel  # noqa: PLC0415
+
+        started_at = time.perf_counter()
+        session: Session = self._session_factory()
+        try:
+            goal = self._init_goal(session, goal_text, goal_id)
+            result = RunResult(status=GoalStatus.RUNNING)
+            replan_count = 0
+            cost_usd = 0.0
+            steps_taken = 0
+            last_failure: FailureReason | None = None
+            state: dict[str, Any] = {"prior_outputs": []}
+
+            while True:
+                if replan_count > self._budget.max_replans:
+                    return self._abort(
+                        session,
+                        goal,
+                        result,
+                        f"max_replans_exceeded ({replan_count})",
+                        steps_taken,
+                        replan_count,
+                        cost_usd,
+                    )
+                try:
+                    plan, plan_cost = self._planner.plan(
+                        goal_text, state=state, failure_reason=last_failure
+                    )
+                except PlannerError as exc:
+                    return self._abort(
+                        session,
+                        goal,
+                        result,
+                        f"planner_error: {exc}",
+                        steps_taken,
+                        replan_count,
+                        cost_usd,
+                    )
+                cost_usd += plan_cost
+
+                if not plan.subtasks:
+                    return self._abort(
+                        session,
+                        goal,
+                        result,
+                        "planner_returned_empty_plan",
+                        steps_taken,
+                        replan_count,
+                        cost_usd,
+                    )
+
+                # Persist subtasks (with their parallel/dependency metadata)
+                # so the trace + ORM stay accurate across both modes.
+                base_idx = len(goal.subtasks)
+                idx_to_id: dict[int, str] = {}
+                db_subtasks: list[Subtask] = []
+                for i, ps in enumerate(plan.subtasks):
+                    st = Subtask(
+                        goal_id=goal.id,
+                        idx=base_idx + i,
+                        description=ps.description,
+                        confidence_threshold=ps.confidence_threshold,
+                        parallel=ps.parallel,
+                        dependencies=[],
+                    )
+                    session.add(st)
+                    db_subtasks.append(st)
+                session.commit()
+                for i, st in enumerate(db_subtasks):
+                    idx_to_id[i] = st.id
+                for i, ps in enumerate(plan.subtasks):
+                    db_subtasks[i].dependencies = [idx_to_id[d] for d in ps.dependencies]
+                session.commit()
+
+                par_result = await _exec_parallel(
+                    plan,
+                    goal_text,
+                    self._selector,
+                    self._validator,
+                    max_concurrency=max_concurrency,
+                )
+                # Account for selector cost — one chat per subtask invocation.
+                cost_usd += sum(1 for o in par_result.completed if o.status == "ok") * 0.0004
+                steps_taken += sum(1 for o in par_result.completed if o.status == "ok")
+
+                # Mirror outcomes onto the persisted subtasks (status only —
+                # tool_call rows aren't re-emitted in this code path).
+                for outcome, db_st in zip(par_result.completed, db_subtasks, strict=False):
+                    db_st.status = (
+                        SubtaskStatus.DONE if outcome.status == "ok" else SubtaskStatus.FAILED
+                    )
+                session.commit()
+
+                # Update state to give the planner the latest sibling outputs
+                # on the next replan.
+                for o in par_result.completed:
+                    if o.status == "ok" and o.output is not None:
+                        state["prior_outputs"].append(o.output)
+
+                if (
+                    par_result.status == GoalStatus.SUCCEEDED
+                    and par_result.final_result is not None
+                ):
+                    return self._succeed(
+                        session,
+                        goal,
+                        result,
+                        par_result.final_result,
+                        steps_taken,
+                        replan_count,
+                        cost_usd,
+                    )
+
+                # Failure path — feed the failure back into the planner and replan.
+                if par_result.last_failure is not None:
+                    last_failure = par_result.last_failure
+                    replan_count += 1
+                    self._record_replan(session, goal, replan_count, None, last_failure, "")
+                    if replan_count > self._budget.max_replans:
+                        return self._abort(
+                            session,
+                            goal,
+                            result,
+                            f"max_replans_exceeded :: {last_failure.short()}",
+                            steps_taken,
+                            replan_count,
+                            cost_usd,
+                        )
+                    continue
+
+                return self._abort(
+                    session,
+                    goal,
+                    result,
+                    "plan_exhausted_without_finish",
+                    steps_taken,
+                    replan_count,
+                    cost_usd,
+                )
+        finally:
+            session.close()
+            _ = started_at  # documented for parity with the sync code path
+
     def _init_goal(self, session: Session, goal_text: str, goal_id: str | None) -> Goal:
         if goal_id is not None:
             goal = session.get(Goal, goal_id)

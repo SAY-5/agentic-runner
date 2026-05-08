@@ -133,12 +133,80 @@ Five tables, all with cascade-on-goal-delete:
 Indexes on `(goal_id, idx)` and `(subtask_id, idx)` support the
 trace-tree-build query without an N+1 walk.
 
+## Parallel subtask execution (DAG scheduler)
+
+The legacy `Runner.run` walks subtasks one at a time. `Runner.run_parallel`
+uses the same plan-validate-replan shape but schedules subtasks against an
+explicit dependency DAG.
+
+### Plan shape
+
+`PlannedSubtask` carries two new fields:
+
+- `parallel: bool` — opt-in to concurrent execution.
+- `dependencies: list[int]` — indices (within the same plan) of subtasks
+  that must complete before this one can start.
+
+If `dependencies` is empty AND `parallel` is true, the subtask is treated as
+a root with no implicit dependency on prior siblings. If `dependencies` is
+empty AND `parallel` is false, the subtask inherits an implicit dependency
+on every earlier subtask, preserving the legacy sequential semantics for
+plans that don't opt in.
+
+### Scheduler
+
+```
+plan -> _build_dependency_map -> while in_flight:
+                                    schedule every ready idx (deps satisfied)
+                                    asyncio.wait(FIRST_COMPLETED, capped at
+                                                 Semaphore(MAX_CONCURRENCY=4))
+                                    on success: append to completed, may unblock more
+                                    on failure: drain remaining, capture last_failure,
+                                                bubble for replan
+```
+
+Concurrency is capped at 4 simultaneous tasks (`MAX_CONCURRENCY`). Each
+subtask runs through the same select -> invoke -> validate sequence as the
+sequential path; sync tool invocation is wrapped in `asyncio.to_thread` so a
+slow tool does not block the event loop.
+
+### Failure -> replan with sibling state
+
+When any subtask fails, the scheduler stops scheduling new work, drains
+the remaining in-flight tasks (so their state is captured), and returns
+the typed `FailureReason` of the first failing subtask. The runner feeds
+that failure into the planner along with `state["prior_outputs"]` —
+which now contains the outputs from every completed sibling subtask, not
+just those before the failure point. This means a replan after a parallel
+branch failure has access to the latest state the rest of the DAG produced.
+
+### Persistence
+
+`subtasks.dependencies` is stored as JSON (list of subtask ID strings) and
+`subtasks.parallel` is a boolean. Both are added by Alembic revision
+`20260508_0001`. The DAG is rebuilt on each replan from the in-memory
+`Plan` rather than the DB row, so a replan is free to choose a different
+parallel/sequential layout.
+
+### Wall-time evidence
+
+For a 5-subtask plan with two independent parallel branches at
+`sleep_s=0.10` per task, the parallel scheduler completes in ~0.42s vs
+~0.51s for the same workload run sequentially (~1.23x speedup; saves
+roughly one `sleep_s` by overlapping the parallel pair). The
+`tests/unit/test_parallel_runner.py::test_parallel_subtasks_overlap_in_wall_time`
+test asserts this directly: it requires the parallel run to beat
+`5 * sleep_s - 0.5 * sleep_s` and verifies the parallel pair's
+start/finish windows overlap.
+
 ## What's deliberately not here
 
 - No retry-with-backoff. A failed tool call goes through the planner, not back
   to the same call site. (This is the entire point of the project.)
 - No streaming responses. The provider Protocol returns a complete
-  `ChatResponse`; the runner is synchronous step-by-step.
+  `ChatResponse`; the runner is synchronous step-by-step (`run_parallel`
+  uses asyncio under the hood but the plan/replan loop itself is still
+  iterative).
 - No vector store or RAG layer. The state passed back into the planner is
   literal subtask + output history, not a retrieval index.
 - No subprocess execution, no shell, no eval(). `calculate` is an AST

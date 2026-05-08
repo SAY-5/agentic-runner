@@ -20,6 +20,15 @@ class PlannedSubtask(BaseModel):
     tool_hint: str = Field(min_length=1, max_length=64)
     confidence_threshold: float = Field(default=0.0, ge=0.0, le=1.0)
     args_override: dict[str, Any] | None = None
+    parallel: bool = Field(default=False)
+    dependencies: list[int] = Field(
+        default_factory=list,
+        description=(
+            "Indices (within the same plan) of subtasks that must complete "
+            "before this one starts. Empty list means: depends on whatever "
+            "the runner's default ordering says."
+        ),
+    )
 
 
 class Plan(BaseModel):
