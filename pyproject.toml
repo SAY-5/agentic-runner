@@ -31,6 +31,7 @@ dev = [
     "black>=24,<26",
     "mypy>=1.13,<2",
     "types-PyYAML>=6,<7",
+    "hypothesis>=6.100,<7",
 ]
 
 [project.scripts]
@@ -78,7 +79,7 @@ source = ["src/agentic_runner"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 80
+fail_under = 85
 show_missing = true
 skip_covered = false
 exclude_lines = [

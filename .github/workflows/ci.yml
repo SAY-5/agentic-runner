@@ -86,7 +86,7 @@ jobs:
           RUN_INTEGRATION: "1"
         run: |
           pytest -q --cov --cov-report=term --cov-report=xml \
-            --cov-fail-under=80 tests/
+            --cov-fail-under=85 tests/
 
   eval-smoke:
     runs-on: ubuntu-latest
