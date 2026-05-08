@@ -83,6 +83,11 @@ def _rubric_pass(goal_id: str, status: str, final: str | None, replan_count: int
         "g12_find_john_salary": "salaries",
         "g14_summarize_short": "summary",
         "g15_extract_strict": "Order id",
+        "g16_compose_report": "report",
+        "g17_data_pipeline": "pipeline",
+        "g18_research_aggregate": "research",
+        "g19_kitchen_sink": "kitchen",
+        "g20_audit_trail": "audit",
     }
     needle = expected_substrings.get(goal_id, "")
     return not (needle and needle.lower() not in final.lower())
@@ -191,6 +196,55 @@ def assert_matches_baseline(report: dict[str, Any], baseline_path: Path) -> None
     diffs = _diff(report, baseline, "$")
     if diffs:
         raise AssertionError("eval baseline mismatch:\n  " + "\n  ".join(diffs[:30]))
+
+
+# Headline aggregate metrics watched by the bench-regress gate.
+_BENCH_METRICS: tuple[str, ...] = (
+    "success_rate",
+    "abort_rate",
+    "avg_steps",
+    "avg_cost_usd",
+    "rubric_pass_rate",
+    "tool_sequence_jaccard_avg",
+)
+
+
+def assert_within_drift(
+    report: dict[str, Any],
+    baseline_path: Path,
+    max_drift: float = 0.30,
+) -> list[str]:
+    """Compare aggregate metrics against the baseline within ``max_drift``.
+
+    Drift is computed as ``abs(new - old) / max(abs(old), 1e-9)``. The
+    gate trips when any metric in :data:`_BENCH_METRICS` exceeds the
+    threshold. Returns the human-readable drift report (always); raises
+    ``AssertionError`` only when the gate trips.
+    """
+    with baseline_path.open() as f:
+        baseline = json.load(f)
+    new = report.get("metrics", {})
+    old = baseline.get("metrics", {})
+
+    lines: list[str] = []
+    breaches: list[str] = []
+    for key in _BENCH_METRICS:
+        if key not in old or key not in new:
+            continue
+        a = float(new[key])
+        b = float(old[key])
+        denom = max(abs(b), 1e-9)
+        drift = abs(a - b) / denom
+        marker = "OK" if drift <= max_drift else "REGRESS"
+        lines.append(f"  {key}: {b:.6f} -> {a:.6f}  drift={drift:.4f}  [{marker}]")
+        if drift > max_drift:
+            breaches.append(f"{key}: drift {drift:.4f} > {max_drift}")
+
+    if breaches:
+        raise AssertionError(
+            "bench-regress: drift exceeded:\n  " + "\n  ".join(breaches) + "\n" + "\n".join(lines)
+        )
+    return lines
 
 
 def _diff(a: Any, b: Any, path: str) -> list[str]:

@@ -1,4 +1,4 @@
-.PHONY: dev migrate seed test lint typecheck eval eval-smoke up serve cli clean format down test-all
+.PHONY: dev migrate seed test lint typecheck eval eval-smoke bench-regress up serve cli clean format down test-all
 
 PY := python
 PIP := pip
@@ -34,6 +34,9 @@ eval:
 
 eval-smoke:
 	$(PY) -m agentic_runner.cli eval smoke --suite runner_v1 --baseline eval/baselines/runner_v1_fake.json --suite-dir eval/suites
+
+bench-regress:
+	$(PY) -m agentic_runner.cli eval bench-regress --suite runner_v1 --baseline eval/baselines/runner_v1_fake.json --suite-dir eval/suites --max-drift 0.30
 
 up:
 	docker compose up -d

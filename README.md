@@ -26,22 +26,36 @@ decompose differently, or abort honestly when no path forward exists.
 
 Real numbers from the committed baseline at
 [`eval/baselines/runner_v1_fake.json`](eval/baselines/runner_v1_fake.json),
-produced by running the 15-goal suite through the deterministic
-`FakeProvider`:
+produced by running the 20-goal suite (15 short + 5 long-horizon at 10 steps
+each) through the deterministic `FakeProvider`:
 
 | Metric | Value |
 | --- | --- |
-| goals (n) | 15 |
-| success rate | 0.9333 |
-| abort rate (honest) | 0.0667 |
-| replan rate | 0.1333 |
-| avg steps per goal | 2.13 |
-| avg cost per goal (USD) | 0.001973 |
+| goals (n) | 20 |
+| success rate | 0.9500 |
+| abort rate (honest) | 0.0500 |
+| replan rate | 0.1000 |
+| avg steps per goal | 4.10 |
+| avg cost per goal (USD) | 0.002680 |
 | tool-sequence Jaccard (avg) | 1.0000 |
 | rubric pass rate | 1.0000 |
 | matches-expected rate | 1.0000 |
 
+The 5 long-horizon goals (`g16`..`g20`) chain 10 tool calls each across
+`query_db`, `calculate`, `write_file`, `read_file`, `summarize`, `http_get`,
+and `extract_json`. They pass at 100% under the FakeProvider.
+
 Re-run with `make eval-smoke` to assert the baseline match within `1e-6`.
+
+### Bench-regress gate
+
+`make bench-regress` re-runs the suite and compares the headline aggregate
+metrics (`success_rate`, `abort_rate`, `avg_steps`, `avg_cost_usd`,
+`rubric_pass_rate`, `tool_sequence_jaccard_avg`) against the committed
+baseline. Any metric whose relative drift exceeds 30% trips the gate and
+fails CI. The `eval-smoke` job remains the strict equality check; the
+`bench-regress` job is the looser drift gate intended to survive hermetic
+LLM jitter once non-fake providers are wired in.
 
 ## Tools
 

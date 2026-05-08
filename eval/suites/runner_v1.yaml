@@ -106,3 +106,38 @@ goals:
     expected_tool_sequence: [extract_json, extract_json, finish]
     expected_replan_count_min: 1
     rubric: order id extracted after replan
+
+  - id: g16_compose_report
+    goal_text: Compose a long-horizon report by writing seed data, reading it, summarizing, computing two metrics, fetching status, writing the final report, and reading it back
+    expected_status: succeeded
+    expected_tool_sequence: [write_file, read_file, summarize, calculate, query_db, calculate, http_get, write_file, read_file, finish]
+    expected_replan_count_min: 0
+    rubric: long-horizon report composed
+
+  - id: g17_data_pipeline
+    goal_text: Run a long-horizon data pipeline that queries the database twice, computes two derived metrics, writes the metrics, reads them back, summarizes, extracts JSON, computes a final adjustment, and finishes
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, calculate, query_db, calculate, write_file, read_file, summarize, extract_json, calculate, finish]
+    expected_replan_count_min: 0
+    rubric: long-horizon data pipeline completed
+
+  - id: g18_research_aggregate
+    goal_text: Run a long-horizon research aggregate that fetches a remote page, writes a corpus, reads it, summarizes, queries the warehouse, computes a metric, writes the brief, reads the brief, and extracts structured outcomes
+    expected_status: succeeded
+    expected_tool_sequence: [http_get, write_file, read_file, summarize, query_db, calculate, write_file, read_file, extract_json, finish]
+    expected_replan_count_min: 0
+    rubric: long-horizon research aggregate completed
+
+  - id: g19_kitchen_sink
+    goal_text: Run a long-horizon kitchen-sink workflow combining read, summarize, write, read, two calculations, query, fetch, and structured extraction
+    expected_status: succeeded
+    expected_tool_sequence: [read_file, summarize, write_file, read_file, calculate, calculate, query_db, http_get, extract_json, finish]
+    expected_replan_count_min: 0
+    rubric: long-horizon kitchen sink completed
+
+  - id: g20_audit_trail
+    goal_text: Run a long-horizon audit trail that queries the warehouse, writes the snapshot, reads it back, queries again, computes a delta, queries once more, computes a final figure, writes the audit summary, reads it, and finishes
+    expected_status: succeeded
+    expected_tool_sequence: [query_db, write_file, read_file, query_db, calculate, query_db, calculate, write_file, read_file, finish]
+    expected_replan_count_min: 0
+    rubric: long-horizon audit trail completed

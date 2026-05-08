@@ -10,6 +10,7 @@ import click
 
 from agentic_runner.eval_harness import (
     assert_matches_baseline,
+    assert_within_drift,
     run_suite,
     write_baseline,
 )
@@ -122,6 +123,41 @@ def eval_smoke(suite: str, provider: str, baseline: Path, suite_dir: Path) -> No
         click.echo(str(exc), err=True)
         sys.exit(2)
     click.echo("eval-smoke: baseline match ok")
+
+
+@eval.command("bench-regress")
+@click.option("--suite", default="runner_v1")
+@click.option("--provider", default="fake")
+@click.option(
+    "--baseline",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    required=True,
+)
+@click.option(
+    "--suite-dir",
+    type=click.Path(file_okay=False, exists=True, path_type=Path),
+    default=Path("eval/suites"),
+)
+@click.option(
+    "--max-drift",
+    type=float,
+    default=0.30,
+    help="Maximum allowed relative drift for any aggregate metric",
+)
+def eval_bench_regress(
+    suite: str, provider: str, baseline: Path, suite_dir: Path, max_drift: float
+) -> None:
+    """Re-run the suite and assert no aggregate metric drifted past ``--max-drift``."""
+    suite_path = suite_dir / f"{suite}.yaml"
+    report = run_suite(suite_path, provider_name=provider)
+    try:
+        lines = assert_within_drift(report, baseline, max_drift=max_drift)
+    except AssertionError as exc:
+        click.echo(str(exc), err=True)
+        sys.exit(2)
+    click.echo(f"bench-regress: all metrics within {max_drift:.0%} drift")
+    for line in lines:
+        click.echo(line)
 
 
 @cli.command()

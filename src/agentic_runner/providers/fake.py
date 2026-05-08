@@ -140,6 +140,77 @@ _PLAN_SCRIPT: dict[str, list[list[dict[str, Any]]]] = {
             {"description": "Return the final answer", "tool_hint": "finish"},
         ],
     ],
+    # ---- Long-horizon goals (10+ steps each) -----------------------------
+    "compose_report": [
+        [
+            {"description": "Write the seed file", "tool_hint": "write_file"},
+            {"description": "Read the seed back", "tool_hint": "read_file"},
+            {"description": "Summarize the seed", "tool_hint": "summarize"},
+            {"description": "Compute the first metric", "tool_hint": "calculate"},
+            {"description": "Query the headcount", "tool_hint": "query_db"},
+            {"description": "Compute the second metric", "tool_hint": "calculate"},
+            {"description": "Fetch the status page", "tool_hint": "http_get"},
+            {"description": "Write the final report", "tool_hint": "write_file"},
+            {"description": "Read the final report", "tool_hint": "read_file"},
+            {"description": "Return the final answer", "tool_hint": "finish"},
+        ]
+    ],
+    "data_pipeline": [
+        [
+            {"description": "Query group averages", "tool_hint": "query_db"},
+            {"description": "Compute first derived metric", "tool_hint": "calculate"},
+            {"description": "Query order count", "tool_hint": "query_db"},
+            {"description": "Compute second derived metric", "tool_hint": "calculate"},
+            {"description": "Write metrics", "tool_hint": "write_file"},
+            {"description": "Read metrics back", "tool_hint": "read_file"},
+            {"description": "Summarize metrics", "tool_hint": "summarize"},
+            {"description": "Extract pipeline JSON", "tool_hint": "extract_json"},
+            {"description": "Compute final adjustment", "tool_hint": "calculate"},
+            {"description": "Return the final answer", "tool_hint": "finish"},
+        ]
+    ],
+    "research_aggregate": [
+        [
+            {"description": "Fetch the remote page", "tool_hint": "http_get"},
+            {"description": "Write the corpus", "tool_hint": "write_file"},
+            {"description": "Read the corpus", "tool_hint": "read_file"},
+            {"description": "Summarize the corpus", "tool_hint": "summarize"},
+            {"description": "Query the warehouse", "tool_hint": "query_db"},
+            {"description": "Compute a metric", "tool_hint": "calculate"},
+            {"description": "Write the brief", "tool_hint": "write_file"},
+            {"description": "Read the brief", "tool_hint": "read_file"},
+            {"description": "Extract structured outcomes", "tool_hint": "extract_json"},
+            {"description": "Return the final answer", "tool_hint": "finish"},
+        ]
+    ],
+    "kitchen_sink": [
+        [
+            {"description": "Read the source file", "tool_hint": "read_file"},
+            {"description": "Summarize the source", "tool_hint": "summarize"},
+            {"description": "Write an intermediate file", "tool_hint": "write_file"},
+            {"description": "Read the intermediate", "tool_hint": "read_file"},
+            {"description": "Compute first value", "tool_hint": "calculate"},
+            {"description": "Compute second value", "tool_hint": "calculate"},
+            {"description": "Query the warehouse", "tool_hint": "query_db"},
+            {"description": "Fetch the remote", "tool_hint": "http_get"},
+            {"description": "Extract structured rank", "tool_hint": "extract_json"},
+            {"description": "Return the final answer", "tool_hint": "finish"},
+        ]
+    ],
+    "audit_trail": [
+        [
+            {"description": "Query the warehouse", "tool_hint": "query_db"},
+            {"description": "Write the snapshot", "tool_hint": "write_file"},
+            {"description": "Read the snapshot back", "tool_hint": "read_file"},
+            {"description": "Query again for engineering", "tool_hint": "query_db"},
+            {"description": "Compute the delta", "tool_hint": "calculate"},
+            {"description": "Query departments", "tool_hint": "query_db"},
+            {"description": "Compute the final figure", "tool_hint": "calculate"},
+            {"description": "Write the audit summary", "tool_hint": "write_file"},
+            {"description": "Read the audit summary", "tool_hint": "read_file"},
+            {"description": "Return the final answer", "tool_hint": "finish"},
+        ]
+    ],
 }
 
 
@@ -222,11 +293,133 @@ _TOOL_ARGS: dict[tuple[str, str], list[dict[str, Any]]] = {
         },
     ],
     ("extract_strict", "finish"): [{"result": "Order id extracted."}],
+    # ---- Long-horizon goals (10+ steps each) -----------------------------
+    ("compose_report", "write_file"): [
+        {"path": "seed.txt", "content": "Seed: alpha beta gamma delta."},
+        {"path": "report_final.txt", "content": "Final composed report."},
+    ],
+    ("compose_report", "read_file"): [
+        {"path": "seed.txt"},
+        {"path": "report_final.txt"},
+    ],
+    ("compose_report", "summarize"): [{"text": "__USE_PRIOR_OUTPUT__", "max_words": 15}],
+    ("compose_report", "calculate"): [
+        {"expression": "12*7+3"},
+        {"expression": "100/4-5"},
+    ],
+    ("compose_report", "query_db"): [{"sql": "SELECT COUNT(*) AS n FROM employees"}],
+    ("compose_report", "http_get"): [{"url": "http://example.com/"}],
+    ("compose_report", "finish"): [{"result": "Long-horizon report composed."}],
+    ("data_pipeline", "query_db"): [
+        {"sql": "SELECT department, AVG(salary) AS avg_salary FROM employees GROUP BY department"},
+        {"sql": "SELECT COUNT(*) AS n FROM orders"},
+    ],
+    ("data_pipeline", "calculate"): [
+        {"expression": "110000-90000"},
+        {"expression": "1000/10"},
+        {"expression": "75+25"},
+    ],
+    ("data_pipeline", "write_file"): [
+        {"path": "metrics.txt", "content": "metric_a=20000\nmetric_b=100"}
+    ],
+    ("data_pipeline", "read_file"): [{"path": "metrics.txt"}],
+    ("data_pipeline", "summarize"): [{"text": "__USE_PRIOR_OUTPUT__", "max_words": 12}],
+    ("data_pipeline", "extract_json"): [
+        {
+            "text": "Order #7 placed on 2024-04-04 for $50.00",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "order_id": {"type": "integer"},
+                    "amount": {"type": "number"},
+                },
+                "required": ["order_id", "amount"],
+            },
+            "hint": "extract pipeline outcome",
+        }
+    ],
+    ("data_pipeline", "finish"): [{"result": "Long-horizon data pipeline completed."}],
+    ("research_aggregate", "http_get"): [{"url": "http://example.com/"}],
+    ("research_aggregate", "write_file"): [
+        {"path": "corpus.txt", "content": "Corpus from remote source."},
+        {"path": "brief.txt", "content": "Research brief: top three findings."},
+    ],
+    ("research_aggregate", "read_file"): [
+        {"path": "corpus.txt"},
+        {"path": "brief.txt"},
+    ],
+    ("research_aggregate", "summarize"): [{"text": "__USE_PRIOR_OUTPUT__", "max_words": 18}],
+    ("research_aggregate", "query_db"): [{"sql": "SELECT COUNT(*) AS n FROM departments"}],
+    ("research_aggregate", "calculate"): [{"expression": "3*7"}],
+    ("research_aggregate", "extract_json"): [
+        {
+            "text": "Outcome: id 9, score 88",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "outcome_id": {"type": "integer"},
+                    "score": {"type": "integer"},
+                },
+                "required": ["outcome_id", "score"],
+            },
+            "hint": "extract research outcomes",
+        }
+    ],
+    ("research_aggregate", "finish"): [{"result": "Long-horizon research aggregate completed."}],
+    ("kitchen_sink", "read_file"): [
+        {"path": "long_doc.txt"},
+        {"path": "kitchen.txt"},
+    ],
+    ("kitchen_sink", "summarize"): [{"text": "__USE_PRIOR_OUTPUT__", "max_words": 14}],
+    ("kitchen_sink", "write_file"): [
+        {"path": "kitchen.txt", "content": "Kitchen sink intermediate output."}
+    ],
+    ("kitchen_sink", "calculate"): [
+        {"expression": "9*9"},
+        {"expression": "81-1"},
+    ],
+    ("kitchen_sink", "query_db"): [{"sql": "SELECT COUNT(*) AS n FROM departments"}],
+    ("kitchen_sink", "http_get"): [{"url": "http://example.com/"}],
+    ("kitchen_sink", "extract_json"): [
+        {
+            "text": "Outcome: rank 1",
+            "schema": {
+                "type": "object",
+                "properties": {"rank": {"type": "integer"}},
+                "required": ["rank"],
+            },
+            "hint": "extract kitchen sink rank",
+        }
+    ],
+    ("kitchen_sink", "finish"): [{"result": "Long-horizon kitchen sink completed."}],
+    ("audit_trail", "query_db"): [
+        {"sql": "SELECT name, salary FROM employees ORDER BY salary DESC"},
+        {"sql": "SELECT COUNT(*) AS n FROM employees WHERE department='engineering'"},
+        {"sql": "SELECT COUNT(*) AS n FROM departments"},
+    ],
+    ("audit_trail", "write_file"): [
+        {"path": "snapshot.txt", "content": "Snapshot: top earners."},
+        {"path": "audit_summary.txt", "content": "Audit summary: figures recorded."},
+    ],
+    ("audit_trail", "read_file"): [
+        {"path": "snapshot.txt"},
+        {"path": "audit_summary.txt"},
+    ],
+    ("audit_trail", "calculate"): [
+        {"expression": "110000-50000"},
+        {"expression": "60000/3"},
+    ],
+    ("audit_trail", "finish"): [{"result": "Long-horizon audit trail completed."}],
 }
 
 
 _GOAL_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     # Order matters: most-specific first, generic last.
+    (re.compile(r"long-horizon.*report|compose.*long-horizon", re.I), "compose_report"),
+    (re.compile(r"long-horizon data pipeline", re.I), "data_pipeline"),
+    (re.compile(r"long-horizon research aggregate", re.I), "research_aggregate"),
+    (re.compile(r"long-horizon kitchen-sink|kitchen-sink workflow", re.I), "kitchen_sink"),
+    (re.compile(r"long-horizon audit trail", re.I), "audit_trail"),
     (re.compile(r"\(2\+3\)\*7", re.I), "calc_simple"),
     (re.compile(r"average salary.*engineering", re.I), "calc_avg_eng"),
     (re.compile(r"two-step|10\*5", re.I), "math_two_step"),

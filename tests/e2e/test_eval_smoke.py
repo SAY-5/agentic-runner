@@ -24,7 +24,7 @@ def test_eval_metrics_floor() -> None:
     suite_path = REPO_ROOT / "eval" / "suites" / "runner_v1.yaml"
     report = run_suite(suite_path, provider_name="fake")
     metrics = report["metrics"]
-    assert metrics["n"] == 15
+    assert metrics["n"] == 20
     assert metrics["success_rate"] >= 0.85
     assert metrics["matches_expected_rate"] >= 0.95
     assert metrics["replan_rate"] > 0.0
