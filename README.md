@@ -59,8 +59,9 @@ LLM jitter once non-fake providers are wired in.
 
 ## Tools
 
-Eight tools, all deterministic in CI. Each ships a Pydantic input schema, a
-Pydantic output schema, a `max_runtime_ms`, and an `idempotent` flag.
+Eight base tools and one composed primitive, all deterministic in CI. Each
+ships a Pydantic input schema, a Pydantic output schema, a `max_runtime_ms`,
+and an `idempotent` flag.
 
 | Tool | Purpose |
 | --- | --- |
@@ -72,6 +73,51 @@ Pydantic output schema, a `max_runtime_ms`, and an `idempotent` flag.
 | `summarize` | LLM-backed summarization. CI's `FakeProvider` returns deterministic scripted summaries. |
 | `extract_json` | LLM-backed structured extraction validated against a user-supplied JSON Schema. |
 | `finish` | Terminal tool that signals completion and returns the final string. |
+| `summarize_document` | **Composed primitive** — `read_file -> summarize -> finish` packaged as one atomic Tool with its own input/output schemas. |
+
+### Composed tools
+
+A `ComposedTool` wraps a fixed sequence of inner tool calls as a single
+primitive that satisfies the `Tool` protocol. The runner sees one tool
+call; the composed tool internally executes its inner steps in order,
+threads each step's output to the next, and produces a combined output
+validated against its own declared output schema.
+
+```python
+from agentic_runner.tools import ComposedTool, ComposedStep, register_tool
+from pydantic import BaseModel, Field
+
+
+class MyInput(BaseModel):
+    path: str = Field(min_length=1)
+    max_words: int = 20
+
+
+class MyOutput(BaseModel):
+    summary: str
+    source_bytes: int
+
+
+@register_tool
+class MyComposed(ComposedTool):
+    name = "my_composed"
+    description = "Read a file and summarize it as one atomic action."
+    input_model = MyInput
+    output_model = MyOutput
+    steps = [
+        ComposedStep("read_file", lambda p, q: {"path": p["path"]}),
+        ComposedStep("summarize", lambda p, q: {"text": q[0]["content"], "max_words": p["max_words"]}),
+        ComposedStep("finish",    lambda p, q: {"result": q[1]["summary"]}),
+    ]
+    output_combiner = staticmethod(
+        lambda p, q: {"summary": q[1]["summary"], "source_bytes": q[0]["bytes"]}
+    )
+```
+
+Inner-step failures propagate as a single `ToolInvocationError` whose
+message names the failing step index and tool. The combiner output is
+validated against `output_model` before returning, so a mismatched
+combiner is caught at invocation rather than silently passed through.
 
 ## Modules
 

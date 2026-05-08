@@ -2,6 +2,7 @@
 
 from agentic_runner.tools import (  # noqa: F401  -- registers all tools
     calculate,
+    composed,  # noqa: F401  -- registers composed tools
     extract_json,
     finish,
     http_get,
@@ -17,9 +18,12 @@ from agentic_runner.tools._base import (
     ToolTimeoutError,
     register_tool,
 )
+from agentic_runner.tools.composed import ComposedStep, ComposedTool
 
 __all__ = [
     "REGISTRY",
+    "ComposedStep",
+    "ComposedTool",
     "Tool",
     "ToolInvocationError",
     "ToolTimeoutError",
